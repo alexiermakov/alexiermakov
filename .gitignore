@@ -1,0 +1,6 @@
+# Local tooling
+.claude/
+.DS_Store
+
+# Packaged skill, not part of the site
+*.skill
