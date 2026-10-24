@@ -1,0 +1,223 @@
+:root {
+  --bg: #060606;
+  --text: #d2d2d2;
+  --avatar-bg: #dedede;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Geist", sans-serif;
+  font-weight: 400;
+  font-size: 19px;
+  letter-spacing: -0.02em; /* -0.38px at 19px */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+a:hover {
+  opacity: 0.6;
+}
+
+a:focus-visible {
+  outline: 1px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* Hidden visually, still read by screen readers */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Scene: the Figma frames pinned to the viewport at 1:1 size ---------- */
+/* scroll.js sets the scene height and every item's transform */
+
+.scene {
+  position: relative;
+}
+
+.viewport {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+}
+
+.item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform, opacity;
+}
+
+/* ---------- Intro ---------- */
+
+.intro {
+  width: 424px;
+  padding-top: 24px;
+}
+
+/* Browser Geist sets a hair narrower than Figma's; 418px reproduces the design's line breaks */
+.intro .text {
+  max-width: 418px;
+}
+
+/* Paragraphs separated by one empty line, as in the design */
+.text {
+  line-height: 1.1;
+}
+
+/* h1 is semantic only: visually identical to body text */
+.text h1 {
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+.text > * {
+  margin: 0;
+}
+
+.text > * + * {
+  margin-top: 1.1em;
+}
+
+.avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: var(--avatar-bg);
+  overflow: hidden;
+}
+
+.avatar img {
+  position: absolute;
+  left: -5.6px;
+  top: -11.64px;
+  width: 107.246px;
+  height: 109.694px;
+  max-width: none;
+  object-fit: cover;
+}
+
+/* ---------- Contacts ---------- */
+
+.contacts {
+  padding: 24px 0;
+  width: 425px;
+}
+
+.contacts p {
+  margin: 0;
+}
+
+.contacts__line {
+  display: inline-block;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.contacts__extra {
+  margin-top: 19px;
+  line-height: 1;
+}
+
+.contacts__extra p + p {
+  margin-top: 19px;
+}
+
+/* ---------- Glitch overlay (glitch.js) ---------- */
+
+.glitch {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  image-rendering: pixelated;
+  opacity: 0;
+}
+
+/* ---------- Narrow screens: a plain column instead of the scroll scene ---------- */
+
+@media (max-width: 1023px) {
+  .scene {
+    overflow-x: clip;
+  }
+
+  .viewport {
+    position: static;
+    height: auto;
+    overflow: visible;
+  }
+
+  .stage {
+    position: static;
+    width: auto;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 40px;
+    padding: 24px 16px 48px;
+  }
+
+  .item {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .intro {
+    order: -3;
+    width: auto;
+    max-width: 424px;
+    padding-top: 0;
+  }
+
+  .avatar {
+    order: -2;
+  }
+
+  .contacts {
+    order: -1;
+    width: auto;
+    padding: 0 0 24px;
+  }
+
+  .contacts__line {
+    white-space: normal;
+  }
+
+  .card {
+    align-self: center;
+  }
+}
