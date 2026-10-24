@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /experiments/
-
-Sitemap: https://alexiermakov.com/sitemap.xml
