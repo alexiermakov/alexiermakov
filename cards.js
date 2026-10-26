@@ -116,11 +116,21 @@
     return c.toDataURL();
   }
 
+  // WebKit (Safari, and every browser on iPhone/iPad) applies url() filters on HTML
+  // unclipped and offset: the lens showed as a square box with the shine slid sideways.
+  // There the glass gets a plain soft blur instead of the SVG lens.
+  var IOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var SAFARI = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|CriOS|Edg|OPR|Firefox/.test(navigator.userAgent);
+  var NO_SVG_LENS = IOS || SAFARI;
+
   (function liquidGlass() {
     var layers = document.querySelectorAll('.lg-btn__under');
     if (!layers.length) return;
 
-    (function buildLenses() {
+    if (NO_SVG_LENS) {
+      layers.forEach(function (layer) { layer.setAttribute('data-soft', ''); });
+    } else (function buildLenses() {
       var defs = document.createElementNS(SVG_NS, 'svg');
       defs.setAttribute('width', '0');
       defs.setAttribute('height', '0');
@@ -174,7 +184,7 @@
   // Settings come from the Figma layer: data-glass="refraction depth dispersion".
   (function glassCards() {
     var layers = document.querySelectorAll('[data-glass]');
-    if (!layers.length) return;
+    if (!layers.length || NO_SVG_LENS) return;
     var defs = document.createElementNS(SVG_NS, 'svg');
     defs.setAttribute('width', '0');
     defs.setAttribute('height', '0');
@@ -549,6 +559,131 @@
     form.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && form.classList.contains('is-red')) restore();
     });
+  })();
+
+  // ---------- Trade: drag the risk knob (pointer, touch or arrow keys) ----------
+  (function riskSlider() {
+    var slider = document.querySelector('.trade__slider');
+    if (!slider) return;
+    var knob = slider.querySelector('.trade__knob');
+    var fill = slider.querySelector('.trade__fill');
+    var values = slider.closest('.trade').querySelectorAll('.trade__value');
+    // Card px: the knob travels from the track start to its end; 250 USDC is where the
+    // design puts it (left 47.31 of 1.434…231.53), so the full track is 1250 USDC
+    var START = 1.434, TRAVEL = 237.269 - START - 5.735, MAX = 1250, MIN = 10, STEP = 10;
+    var value = 250;
+
+    function set(v) {
+      value = Math.max(MIN, Math.min(MAX, Math.round(v / STEP) * STEP));
+      var x = START + TRAVEL * value / MAX;
+      knob.style.left = x + 'px';
+      fill.style.width = x + 1.43 + 'px';
+      var text = value.toLocaleString('en-US');
+      values.forEach(function (el) { el.textContent = text; });
+      slider.setAttribute('aria-valuenow', value);
+    }
+    // Pointer x → value (the card may be scaled to fit a phone)
+    function fromPointer(e) {
+      var r = slider.getBoundingClientRect();
+      var k = r.width / slider.offsetWidth;
+      set(((e.clientX - r.left) / k - START - 5.735 / 2) / TRAVEL * MAX);
+    }
+
+    slider.addEventListener('pointerdown', function (e) {
+      slider.setPointerCapture(e.pointerId);
+      slider.classList.add('is-dragging');
+      fromPointer(e);
+    });
+    slider.addEventListener('pointermove', function (e) {
+      if (slider.classList.contains('is-dragging')) fromPointer(e);
+    });
+    ['pointerup', 'pointercancel'].forEach(function (type) {
+      slider.addEventListener(type, function () { slider.classList.remove('is-dragging'); });
+    });
+    slider.addEventListener('keydown', function (e) {
+      var d = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[e.key];
+      if (e.key === 'Home') d = -MAX;
+      if (e.key === 'End') d = MAX;
+      if (!d) return;
+      e.preventDefault();
+      set(value + d * (e.shiftKey ? 100 : STEP));
+    });
+  })();
+
+  // ---------- Risk bars: drag the level along the bars, or pick a chip ----------
+  (function riskBars() {
+    var card = document.getElementById('bars');
+    if (!card) return;
+    var row = card.querySelector('.bars__row');
+    var pointer = row.querySelector('.bars__pointer');
+    var pctEl = card.querySelector('.bars__pct');
+    var riskEl = card.querySelector('.bars__risk');
+    var chips = card.querySelectorAll('.bars__chips span');
+    var PITCH = 13, PAD = 1, LAST = 26, ACCOUNT = 10000; // bars are 3px + 10px gap
+    // Bar colours by position: green → the design's yellow at bar 4 → orange → red
+    var STOPS = [[0, [135, 248, 64]], [3, [225, 253, 16]], [14, [255, 170, 30]], [26, [255, 70, 60]]];
+    var level = 3;
+
+    function colour(k) {
+      for (var j = 1; j < STOPS.length; j++) {
+        if (k <= STOPS[j][0]) {
+          var a = STOPS[j - 1], b = STOPS[j], t = (k - a[0]) / (b[0] - a[0]);
+          return 'rgb(' + a[1].map(function (c, n) { return Math.round(c + (b[1][n] - c) * t); }).join(',') + ')';
+        }
+      }
+    }
+    // Risk grows faster towards the end: bar 4 is the design's 5%, the last bar 100%
+    function pctOf(i) { return Math.round(100 * Math.pow(i / LAST, 1.39)); }
+    function levelOf(pct) { return Math.round(LAST * Math.pow(pct / 100, 1 / 1.39)); }
+
+    function set(i) {
+      level = Math.max(0, Math.min(LAST, i));
+      var bars = row.querySelectorAll('i');
+      bars.forEach(function (bar, k) {
+        var on = k <= level;
+        bar.style.height = on ? 13 + 8 * (level ? k / level : 1) + 'px' : '';
+        bar.style.background = on ? colour(k) : '';
+      });
+      pointer.style.left = PAD + PITCH * level + 1.5 - 6.95 + 'px';
+      var pct = pctOf(level);
+      pctEl.textContent = pct + '%';
+      pctEl.style.color = colour(level);
+      riskEl.textContent = pct + '% ($' + (ACCOUNT * pct / 100).toLocaleString('en-US') + ')';
+      row.setAttribute('aria-valuenow', pct);
+      row.setAttribute('aria-valuetext', pct + '%');
+    }
+    function fromPointer(e) {
+      var r = row.getBoundingClientRect();
+      var k = r.width / row.offsetWidth; // the card may be scaled to fit a phone
+      set(Math.round(((e.clientX - r.left) / k - PAD - 1.5) / PITCH));
+    }
+
+    var dragging = false;
+    row.addEventListener('pointerdown', function (e) {
+      dragging = true;
+      row.setPointerCapture(e.pointerId);
+      fromPointer(e);
+    });
+    row.addEventListener('pointermove', function (e) { if (dragging) fromPointer(e); });
+    ['pointerup', 'pointercancel'].forEach(function (type) {
+      row.addEventListener(type, function () { dragging = false; });
+    });
+    row.addEventListener('keydown', function (e) {
+      var d = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[e.key];
+      if (e.key === 'Home') d = -LAST;
+      if (e.key === 'End') d = LAST;
+      if (!d) return;
+      e.preventDefault();
+      set(level + d);
+    });
+    // Chips jump to their level: 0%, 10%, 20%, 50%, MAX
+    chips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        set(chip.textContent === 'MAX' ? LAST : levelOf(parseFloat(chip.textContent)));
+      });
+    });
+
+    set(level);
   })();
 
   var fontReady = document.fonts && document.fonts.load

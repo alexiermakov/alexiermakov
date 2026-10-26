@@ -894,6 +894,8 @@
   inset: 0;
   overflow: hidden; /* clips the mirrored label to the capsule */
   border-radius: 999px;
+  /* clip-path also clips the filter's output (overflow doesn't in WebKit) */
+  clip-path: inset(0 round 999px);
 }
 
 /* Only the glass moves on hover/press. Scaling the whole button re-rasterised the
@@ -975,6 +977,12 @@
 /* The glass refracts what lies under it: the lens filter (cards.js) bends and frosts the under-layer */
 .lg-btn__under[data-lens] {
   filter: var(--lens);
+}
+
+/* Without the SVG lens (Safari / iPhone, see cards.js) a plain blur frosts the shine
+   and mirrored label into the same soft glow */
+.lg-btn__under[data-soft] {
+  filter: blur(2.5px);
 }
 
 /* Interactive glass (Apple's .interactive()): on hover the whole capsule lights up
@@ -1080,7 +1088,8 @@
    glass is thicker there, so the colour gets richer towards the rim, a dark band
    marks the thickness, and a crisp specular line catches the light top-left.
    No lens here (it warped the fill and the label). */
-.lg-btn--primary .lg-btn__under[data-lens] {
+.lg-btn--primary .lg-btn__under[data-lens],
+.lg-btn--primary .lg-btn__under[data-soft] {
   filter: none;
 }
 
@@ -1410,6 +1419,20 @@
   width: 237.269px;
   height: 18.637px;
   padding-left: 1.434px;
+  cursor: pointer;
+  touch-action: none; /* horizontal drags move the knob, even on touch screens */
+  outline: none;
+}
+
+/* A taller hit area than the 4px track */
+.trade__slider::before {
+  content: "";
+  position: absolute;
+  inset: -8px -6px;
+}
+
+.trade__slider:focus-visible .trade__knob {
+  box-shadow: 0 0 0 2px rgba(252, 255, 63, 0.35);
 }
 
 .trade__track {
@@ -1463,6 +1486,12 @@
   border: 1.434px solid rgba(252, 255, 63, 0.82);
   border-radius: 50%;
   background: #fff;
+  transition: transform 0.25s cubic-bezier(0.34, 1.7, 0.5, 1);
+}
+
+.trade__slider:hover .trade__knob,
+.trade__slider.is-dragging .trade__knob {
+  transform: translateY(-50%) scale(1.5);
 }
 
 .trade__hint {
@@ -1493,7 +1522,7 @@
   background: #fff;
   box-shadow: inset -0.717px 0 0.717px rgba(0, 0, 0, 0.5), inset 0.717px 0 0.717px rgba(255, 255, 255, 0.1), inset 0 0.717px 0.717px rgba(255, 255, 255, 0.2);
   color: #000;
-  font-size: 7.19px;
+  font-size: 10.752px; /* same size as "Market" */
   font-weight: 600;
   letter-spacing: -0.0719px;
 }
@@ -1501,6 +1530,68 @@
 .trade__buy img {
   width: 11.469px;
   height: 11.469px;
+}
+
+/* Hover: the button lights up (a soft white glow around it), a sheen sweeps across
+   once and the arrow lifts off, as if the order is about to go. No scaling: it
+   re-rasterises the label and the text jumps. */
+.trade__buy {
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.35s ease-out, background-color 0.35s ease-out;
+}
+
+.trade__buy::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(0, 0, 0, 0.07) 45%, rgba(0, 0, 0, 0.07) 55%, transparent);
+  transform: translateX(0);
+  pointer-events: none;
+}
+
+.trade__buy:hover {
+  box-shadow:
+    inset -0.717px 0 0.717px rgba(0, 0, 0, 0.5),
+    inset 0.717px 0 0.717px rgba(255, 255, 255, 0.1),
+    inset 0 0.717px 0.717px rgba(255, 255, 255, 0.2),
+    0 0 18px 2px rgba(255, 255, 255, 0.22),
+    0 0 4px rgba(255, 255, 255, 0.4);
+}
+
+.trade__buy:hover::before {
+  animation: trade-sheen 0.75s ease-out;
+}
+
+.trade__buy:hover img {
+  animation: trade-lift 0.9s cubic-bezier(0.34, 1.6, 0.5, 1) infinite;
+}
+
+.trade__buy:active {
+  background: #e9e9e9;
+  transition-duration: 0.08s;
+}
+
+@keyframes trade-sheen {
+  to { transform: translateX(360%); }
+}
+
+/* The arrow icon hops up and settles, over and over while hovered */
+@keyframes trade-lift {
+  0% { transform: translateY(0); }
+  35% { transform: translateY(-2.5px); }
+  60% { transform: translateY(0.6px); }
+  100% { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trade__buy:hover::before,
+  .trade__buy:hover img {
+    animation: none;
+  }
 }
 
 /* ---------- Risk bars ---------- */
@@ -1555,7 +1646,33 @@
   background: rgba(60, 60, 67, 0.38);
 }
 
+/* The row is a slider: drag along it, click a bar, or use the arrow keys */
+.bars__row {
+  cursor: pointer;
+  touch-action: none;
+  outline: none;
+}
+
+.bars__row::before {
+  content: "";
+  position: absolute;
+  inset: -22px -6px -8px;
+}
+
+.bars__row i {
+  transition: height 0.25s cubic-bezier(0.34, 1.5, 0.5, 1), background-color 0.25s ease-out;
+}
+
+.bars__row:focus-visible .bars__pointer {
+  filter: drop-shadow(0 0 3px rgba(225, 253, 16, 0.8));
+}
+
+.bars__pct {
+  transition: color 0.25s ease-out;
+}
+
 .bars__pointer {
+  transition: left 0.2s cubic-bezier(0.34, 1.4, 0.5, 1);
   position: absolute;
   left: 34px;
   top: -16.56px;
@@ -1594,6 +1711,51 @@
   background: rgba(255, 255, 255, 0.02);
   color: rgba(255, 255, 255, 0.95);
   font-weight: 600;
+}
+
+/* Hover, like the trade card's buy button: the chip lights up with a soft glow,
+   its outline brightens and a sheen sweeps across once (light, on the dark chip) */
+.bars__chips span {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.35s ease-out, box-shadow 0.35s ease-out, background-color 0.35s ease-out;
+}
+
+.bars__chips span::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 60%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.16) 45%, rgba(255, 255, 255, 0.16) 55%, transparent);
+  pointer-events: none;
+}
+
+.bars__chips span:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 14px 1px rgba(255, 255, 255, 0.14), inset 0 0 6px rgba(255, 255, 255, 0.08);
+}
+
+.bars__chips span:hover::before {
+  animation: chip-sheen 0.7s ease-out;
+}
+
+.bars__chips span:active {
+  background-color: rgba(255, 255, 255, 0.12);
+  transition-duration: 0.08s;
+}
+
+@keyframes chip-sheen {
+  to { transform: translateX(270%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bars__chips span:hover::before {
+    animation: none;
+  }
 }
 
 .bars__hint {

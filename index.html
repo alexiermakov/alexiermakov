@@ -33,7 +33,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400&family=Host+Grotesk:wght@400;500&family=Atkinson+Hyperlegible+Mono:wght@500&family=Wix+Madefor+Text:wght@500;600&family=Manrope:wght@500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="preload" href="assets/fonts/lebowski-regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="styles.css?v=6">
-  <link rel="stylesheet" href="cards.css?v=60">
+  <link rel="stylesheet" href="cards.css?v=65">
 
   <script type="application/ld+json">
   {
@@ -171,7 +171,7 @@
           <button class="ai__devil" type="button" aria-label="Вернуть окно"></button>
         </form>
 
-        <div class="item card trade" id="trade" role="img" aria-label="Форма сделки">
+        <div class="item card trade" id="trade" role="group" aria-label="Форма сделки">
           <i class="trade__grab"></i>
           <div class="trade__top">
             <div class="trade__seg"><span class="is-active">Long</span><span>Short</span></div>
@@ -179,25 +179,25 @@
           </div>
           <div class="trade__body">
             <span class="trade__label">Risk</span>
-            <div class="trade__input"><span>250</span><span>USDC</span></div>
-            <div class="trade__slider">
+            <div class="trade__input"><span class="trade__value">250</span><span>USDC</span></div>
+            <div class="trade__slider" role="slider" tabindex="0" aria-label="Риск, USDC" aria-valuemin="10" aria-valuemax="1250" aria-valuenow="250">
               <div class="trade__track"><span class="trade__dots"></span></div>
               <i class="trade__fill"></i>
               <i class="trade__knob"></i>
             </div>
-            <p class="trade__hint">This trade risks<b> 250 USDC</b> of your<b> account</b></p>
+            <p class="trade__hint">This trade risks<b> <span class="trade__value">250</span> USDC</b> of your<b> account</b></p>
           </div>
           <span class="trade__buy">Market Buy BTC<img src="assets/cards/btn-icon.svg" alt=""></span>
         </div>
 
-        <div class="item card bars" id="bars" role="img" aria-label="Выбор уровня риска">
+        <div class="item card bars" id="bars" role="group" aria-label="Выбор уровня риска">
           <div class="bars__head"><span>Risk</span><span class="bars__pct">5%</span></div>
-          <div class="bars__row">
+          <div class="bars__row" role="slider" tabindex="0" aria-label="Риск, % счёта" aria-valuemin="0" aria-valuemax="100" aria-valuenow="5" aria-valuetext="5%">
             <i style="height:13px;background:#87f840"></i><i style="height:15px;background:#a5f930"></i><i style="height:17px;background:#a5f930"></i><i style="height:21px;background:#e1fd10"></i>
             <span class="bars__pointer"><span><img src="assets/cards/pointer.svg" alt=""></span></span>
           </div>
           <div class="bars__chips"><span>0%</span><span>10%</span><span>20%</span><span>50%</span><span>MAX</span></div>
-          <p class="bars__hint">This trade risks<b> 14% ($500)</b> of your<b> account</b></p>
+          <p class="bars__hint">This trade risks<b> <span class="bars__risk">14% ($500)</span></b> of your<b> account</b></p>
         </div>
 
         <div class="item card margin" id="margin" role="img" aria-label="Карточка маржи">
@@ -337,7 +337,7 @@
       a.textContent = e;
     });
   </script>
-  <script src="cards.js?v=23"></script>
+  <script src="cards.js?v=26"></script>
   <script src="scroll.js?v=10"></script>
   <script src="glitch.js?v=9"></script>
 </body>
