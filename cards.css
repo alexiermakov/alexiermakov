@@ -2061,12 +2061,14 @@
 /* ---------- Streak ---------- */
 
 .streak {
+  --streak: #83ff33;
   width: 215.536px;
   height: 248.696px;
-  border-radius: 33.159px;
-  background: #83ff33;
+  border-radius: 33.159px; /* cards.js turns this into Figma's 80% corner smoothing */
+  background: var(--streak);
   overflow: hidden;
   color: #000;
+  transition: background-color 0.45s ease-out;
 }
 
 .streak > * {
@@ -2080,12 +2082,26 @@
   white-space: nowrap;
 }
 
+/* Centred, so 100+ days stay in the middle too */
 .streak__num {
-  left: 79.59px;
-  top: 105.44px;
-  transform: translateY(-50%);
+  --bump: 1.1;   /* peak scale, set per click by cards.js: faster clicks jump higher */
+  --lift: -62%;
+  left: 50%;
+  top: 115.44px;
+  transform: translate(-50%, -50%);
+  padding-left: 2.3212px; /* balances the tracking after the last digit */
   font: 500 46.423px/normal "Atkinson Hyperlegible Mono", monospace;
   letter-spacing: -2.3212px;
+}
+
+.streak__num.is-bump {
+  animation: streak-bump 0.45s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+@keyframes streak-bump {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  35% { transform: translate(-50%, var(--lift)) scale(var(--bump)); }
+  100% { transform: translate(-50%, -50%) scale(1); }
 }
 
 .streak__plus {
@@ -2093,27 +2109,47 @@
   top: 192.32px;
   width: 36.475px;
   height: 36.475px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
   border-radius: 50%;
+  /* a darker shade of the card, whatever colour it has */
   background: #43aa00;
+  background: color-mix(in oklab, var(--streak) 62%, #000);
+  cursor: pointer;
+  transition: background-color 0.45s ease-out, transform 0.3s cubic-bezier(0.34, 1.8, 0.5, 1);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.streak__plus i {
-  position: absolute;
-  background: #fff;
-}
-
-.streak__plus i:first-child {
-  left: 17.41px;
-  top: 11.61px;
-  width: 1.658px;
-  height: 13.264px;
-}
-
-.streak__plus i:last-child {
-  left: 11.6px;
-  top: 17.41px;
+.streak__plus svg {
   width: 13.264px;
-  height: 1.658px;
+  height: 13.264px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.66;
+  stroke-linecap: round;
+}
+
+.streak__plus:hover {
+  transform: scale(1.08);
+}
+
+.streak__plus:active {
+  transform: scale(0.92);
+  transition-duration: 0.08s;
+}
+
+.streak__plus:focus-visible {
+  outline: 1.5px solid #000;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak__num.is-bump {
+    animation: none;
+  }
 }
 
 /* ---------- Wolves ---------- */

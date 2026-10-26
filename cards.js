@@ -767,6 +767,38 @@
     });
   })();
 
+  // ---------- Workouts streak: + adds a day and repaints the card ----------
+  (function streak() {
+    var card = document.getElementById('streak');
+    if (!card) return;
+    var num = card.querySelector('.streak__num');
+    var plus = card.querySelector('.streak__plus');
+    // Bright colours that keep the black text readable
+    var COLOURS = ['#83ff33', '#ffe14d', '#ff9f43', '#ff7eb6', '#b892ff', '#5ecbff', '#4dfcc0', '#ff6b6b', '#c6ff4d'];
+    var days = parseInt(num.textContent, 10);
+    var current = COLOURS[0];
+
+    var lastClick = 0;
+
+    plus.addEventListener('click', function () {
+      // How fast the clicks come: 0 for a lone or slow click, 1 for rapid tapping
+      var now = performance.now();
+      var speed = Math.max(0, Math.min(1, (700 - (now - lastClick)) / 550));
+      lastClick = now;
+      num.style.setProperty('--bump', (1.04 + 0.36 * speed).toFixed(3));
+      num.style.setProperty('--lift', -(52 + 22 * speed).toFixed(1) + '%');
+      days += 1;
+      num.textContent = days;
+      num.classList.remove('is-bump');
+      void num.offsetWidth; // restart the bump animation
+      num.classList.add('is-bump');
+      var next;
+      do { next = COLOURS[Math.floor(Math.random() * COLOURS.length)]; } while (next === current);
+      current = next;
+      card.style.setProperty('--streak', next);
+    });
+  })();
+
   var fontReady = document.fonts && document.fonts.load
     ? document.fonts.load('26px "Lebowski"').catch(function () {})
     : Promise.resolve();

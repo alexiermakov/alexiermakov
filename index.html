@@ -33,7 +33,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400&family=Host+Grotesk:wght@400;500&family=Atkinson+Hyperlegible+Mono:wght@500&family=Wix+Madefor+Text:wght@500;600&family=Manrope:wght@500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="preload" href="assets/fonts/lebowski-regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="styles.css?v=6">
-  <link rel="stylesheet" href="cards.css?v=66">
+  <link rel="stylesheet" href="cards.css?v=68">
 
   <script type="application/ld+json">
   {
@@ -231,11 +231,15 @@
           <span class="withdraw__progress"><i></i><i></i></span>
         </div>
 
-        <div class="item card streak" id="streak" role="img" aria-label="Виджет тренировок">
+        <div class="item card streak" id="streak" role="group" aria-label="Виджет тренировок" data-smooth-radius="33.159">
           <span class="streak__label" style="top:32.4px">workouts</span>
-          <span class="streak__num">12</span>
-          <span class="streak__label" style="top:140.99px">day streak</span>
-          <span class="streak__plus"><i></i><i></i></span>
+          <span class="streak__num" aria-live="polite">12</span>
+          <span class="streak__label" style="top:150.99px">day streak</span>
+          <!-- The plus is an SVG: two 1.66px bars drawn by CSS landed on different
+               subpixels inside the scaled, moving card and came out crooked -->
+          <button class="streak__plus" type="button" aria-label="Добавить тренировку">
+            <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 .4v13.2M.4 7h13.2"/></svg>
+          </button>
         </div>
 
         <div class="item card wolves" id="wolves" role="img" aria-label="Иллюстрация">
@@ -337,7 +341,7 @@
       a.textContent = e;
     });
   </script>
-  <script src="cards.js?v=27"></script>
+  <script src="cards.js?v=29"></script>
   <script src="scroll.js?v=10"></script>
   <script src="glitch.js?v=9"></script>
 </body>
