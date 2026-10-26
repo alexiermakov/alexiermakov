@@ -155,7 +155,7 @@
   background: #000;
   border-radius: 34px;
   overflow: hidden;
-  font-size: 8.117px;
+  font-size: 9.991px; /* the profile name's size; only the tab bar stays smaller */
   line-height: normal;
   white-space: nowrap;
 }
@@ -436,6 +436,33 @@
   position: absolute;
 }
 
+/* The drum turns: drag it, scroll over it or use the arrow keys (cards.js).
+   --drum-y is the live offset of the numbers while it moves. */
+.ph-picker {
+  --drum-y: 0px;
+  cursor: grab;
+  touch-action: none;
+  outline: none;
+}
+
+.ph-picker.is-turning {
+  cursor: grabbing;
+}
+
+.ph-picker__main,
+.ph-picker__alt {
+  translate: 0 var(--drum-y);
+}
+
+.ph-picker.is-settling .ph-picker__main,
+.ph-picker.is-settling .ph-picker__alt {
+  transition: translate 0.35s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+.ph-picker:focus-visible .ph-picker__num {
+  text-shadow: 0 0 24.976px #eaffff, 0 0 2px #fff;
+}
+
 .ph-picker__main {
   left: calc(50% + 7.81px);
   top: 33.09px;
@@ -610,7 +637,7 @@
   border-radius: 31.22px;
   background: #fff;
   color: #000;
-  font-size: 9.366px;
+  font-size: 9.991px;
   font-weight: 500;
   letter-spacing: 0.281px;
   text-transform: uppercase;
@@ -624,7 +651,7 @@
   flex-direction: column;
   align-items: center;
   gap: 4.995px;
-  font-size: 7.493px;
+  font-size: 9.991px;
   font-weight: 500;
   line-height: 1.2;
 }

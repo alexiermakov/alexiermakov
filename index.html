@@ -33,7 +33,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400&family=Host+Grotesk:wght@400;500&family=Atkinson+Hyperlegible+Mono:wght@500&family=Wix+Madefor+Text:wght@500;600&family=Manrope:wght@500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="preload" href="assets/fonts/lebowski-regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="styles.css?v=6">
-  <link rel="stylesheet" href="cards.css?v=65">
+  <link rel="stylesheet" href="cards.css?v=66">
 
   <script type="application/ld+json">
   {
@@ -66,7 +66,7 @@
           <span class="steps__value" data-count="12,590">12,590</span>
         </div>
 
-        <div class="item card phone" id="phone" role="img" aria-label="Экран приложения для фокуса">
+        <div class="item card phone" id="phone" role="group" aria-label="Экран приложения для фокуса">
           <img class="phone__shadow" src="assets/cards/iphone-shadow.png" alt="" loading="lazy">
           <img class="phone__frame" src="assets/cards/iphone-frame.png" alt="" loading="lazy">
           <div class="phone__under"></div>
@@ -103,7 +103,7 @@
             </div>
             <span class="ph-task">Enter task name</span>
             <span class="ph-circle ph-invite"><img src="assets/cards/person.svg" alt=""></span>
-            <div class="ph-picker">
+            <div class="ph-picker" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Длительность фокуса, минуты" aria-valuemin="5" aria-valuemax="120" aria-valuenow="25" aria-valuetext="25 min">
               <div class="ph-picker__main"><span class="ph-picker__num">25</span><span class="ph-picker__unit">min</span></div>
               <span class="ph-picker__alt ph-picker__alt--top">30</span>
               <i class="ph-picker__fade ph-picker__fade--top"></i>
@@ -337,7 +337,7 @@
       a.textContent = e;
     });
   </script>
-  <script src="cards.js?v=26"></script>
+  <script src="cards.js?v=27"></script>
   <script src="scroll.js?v=10"></script>
   <script src="glitch.js?v=9"></script>
 </body>

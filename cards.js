@@ -686,6 +686,87 @@
     set(level);
   })();
 
+  // ---------- Phone: the minutes drum turns (drag, wheel, arrow keys) ----------
+  // Dragging down brings the number above into the middle, like an iOS picker.
+  // The reward follows the minutes, as in the design (25 min → 25).
+  (function minutesDrum() {
+    var drum = document.querySelector('.ph-picker');
+    if (!drum) return;
+    var num = drum.querySelector('.ph-picker__num');
+    var above = drum.querySelector('.ph-picker__alt--top');
+    var below = drum.querySelector('.ph-picker__alt--bottom');
+    var reward = document.querySelector('.ph-reward__num');
+    var STEP = 46, MIN = 5, MAX = 120, BY = 5; // px between rows, minutes per row
+    var value = 25, offset = 0, startY = 0, startOffset = 0, turning = false, wheelEnd = 0;
+
+    function show() {
+      num.textContent = value;
+      above.textContent = value + BY <= MAX ? value + BY : '';
+      below.textContent = value - BY >= MIN ? value - BY : '';
+      if (reward) reward.textContent = value;
+      drum.setAttribute('aria-valuenow', value);
+      drum.setAttribute('aria-valuetext', value + ' min');
+    }
+    function move(y) {
+      // Roll over to the next number once the row has moved half a step
+      while (y > STEP / 2 && value + BY <= MAX) { value += BY; y -= STEP; startOffset -= STEP; }
+      while (y < -STEP / 2 && value - BY >= MIN) { value -= BY; y += STEP; startOffset += STEP; }
+      // Past the ends the drum only gives a little
+      var edge = (y > 0 && value + BY > MAX) || (y < 0 && value - BY < MIN);
+      offset = edge ? y / 3 : y;
+      drum.style.setProperty('--drum-y', offset + 'px');
+      show();
+    }
+    function settle() {
+      drum.classList.add('is-settling');
+      drum.style.setProperty('--drum-y', '0px');
+      offset = 0;
+      setTimeout(function () { drum.classList.remove('is-settling'); }, 360);
+    }
+    function scale() {
+      return drum.getBoundingClientRect().height / drum.offsetHeight || 1; // the card may be zoomed
+    }
+
+    drum.addEventListener('pointerdown', function (e) {
+      turning = true;
+      drum.classList.remove('is-settling');
+      drum.classList.add('is-turning');
+      drum.setPointerCapture(e.pointerId);
+      startY = e.clientY;
+      startOffset = offset;
+    });
+    drum.addEventListener('pointermove', function (e) {
+      if (turning) move(startOffset + (e.clientY - startY) / scale());
+    });
+    ['pointerup', 'pointercancel'].forEach(function (type) {
+      drum.addEventListener(type, function () {
+        if (!turning) return;
+        turning = false;
+        drum.classList.remove('is-turning');
+        settle();
+      });
+    });
+    // Wheel / trackpad: scrolling down turns to smaller numbers
+    drum.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      drum.classList.remove('is-settling');
+      move(offset - e.deltaY * 0.5);
+      clearTimeout(wheelEnd);
+      wheelEnd = setTimeout(settle, 140);
+    }, { passive: false });
+    drum.addEventListener('keydown', function (e) {
+      var d = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e.key];
+      if (!d) return;
+      e.preventDefault();
+      value = Math.max(MIN, Math.min(MAX, value + d * BY));
+      show();
+      // a small nudge so the change reads as the drum turning
+      drum.classList.remove('is-settling');
+      drum.style.setProperty('--drum-y', -d * STEP * 0.35 + 'px');
+      requestAnimationFrame(function () { requestAnimationFrame(settle); });
+    });
+  })();
+
   var fontReady = document.fonts && document.fonts.load
     ? document.fonts.load('26px "Lebowski"').catch(function () {})
     : Promise.resolve();
