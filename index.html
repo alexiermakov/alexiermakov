@@ -32,8 +32,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400&family=Host+Grotesk:wght@400;500&family=Atkinson+Hyperlegible+Mono:wght@500&family=Wix+Madefor+Text:wght@500;600&family=Manrope:wght@500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="preload" href="assets/fonts/lebowski-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=5">
-  <link rel="stylesheet" href="cards.css?v=31">
+  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="cards.css?v=60">
 
   <script type="application/ld+json">
   {
@@ -242,6 +242,63 @@
           <img src="assets/cards/wolves.jpg" alt="" loading="lazy">
         </div>
 
+        <!-- Money and To Do (Figma: "Money" and "Дела на сегодня" in Desktop 8–9) -->
+        <div class="item card money" id="money" role="group" tabindex="0" aria-label="Виджет баланса: 2 671 888,19 долларов, плюс 3,43%. Стрелками влево и вправо можно двигать указатель по графику">
+          <!-- What the card's glass refracts (Figma GLASS: refraction .4, depth 35.9, dispersion .55) -->
+          <div class="money__under" data-glass="0.4 35.89 0.55" data-glass-radius="31.9">
+            <img class="money__base" src="assets/finance/money-base.svg" alt="">
+            <i class="money__glow"></i>
+            <span class="money__chart"><i class="money__area"></i><img src="assets/finance/money-chart.svg" alt=""></span>
+            <i class="money__head"></i>
+          </div>
+          <i class="money__glass"></i>
+          <div class="money__title">
+            <span class="fin-label">Money</span>
+            <div class="money__figures">
+              <span class="fin-amount"><span class="fin-dim">$</span><span class="money__int">2 671 888</span><span class="fin-dim money__cents">,19</span></span>
+              <span class="money__delta">+<span class="money__pct">3,43</span>%<img src="assets/finance/arrow-up.svg" alt=""></span>
+            </div>
+          </div>
+          <img class="money__info" src="assets/finance/info.svg" alt="">
+          <div class="money__timeline">
+            <span>May</span><span>June</span><span>July</span><span>Aug</span><span>Sept</span><span>Oct</span>
+          </div>
+          <!-- Chart indicator: a ring at rest; on hover / drag / arrow keys it becomes a glass
+               bead (Figma GLASS: refraction .68, dispersion .71) with guide lines -->
+          <div class="money__pointer" aria-hidden="true">
+            <i class="money__guide money__guide--top"></i>
+            <i class="money__guide money__guide--bottom"></i>
+            <i class="money__ring"></i>
+            <span class="money__bead">
+              <span class="money__bead-lens"><img src="assets/finance/money-chart.svg" alt=""></span>
+              <span class="money__bead-rim"><img src="assets/finance/money-chart.svg" alt=""></span>
+              <i class="money__bead-glass"></i>
+            </span>
+          </div>
+        </div>
+
+        <div class="item card todo" id="todo" role="img" aria-label="Виджет задач: оплатить кредит 1 184 602,40 долларов, нужно ваше действие">
+          <i class="todo__plate todo__plate--back"></i>
+          <i class="todo__plate todo__plate--mid"></i>
+          <div class="todo__card">
+            <div class="todo__under" data-glass="0.4 35.04 0.55" data-glass-radius="31.145">
+              <img class="todo__base" src="assets/finance/todo-base.svg" alt="">
+              <i class="todo__glow"></i>
+            </div>
+            <i class="todo__glass"></i>
+            <span class="fin-label todo__name">To Do</span>
+            <div class="todo__title">
+              <span class="fin-amount"><span class="fin-dim">$</span>1 184 602<span class="fin-dim">,40</span></span>
+              <span class="fin-label">Pay for credit</span>
+            </div>
+            <div class="todo__action">
+              <img src="assets/finance/warning.svg" alt="">
+              <span>Need your action</span>
+              <img src="assets/finance/chevron-right.svg" alt="">
+            </div>
+          </div>
+        </div>
+
         <!-- Intro: text leaves, photo slides to the right corner, contacts stay -->
         <section class="item intro" id="intro">
           <div class="text">
@@ -280,8 +337,8 @@
       a.textContent = e;
     });
   </script>
-  <script src="cards.js?v=14"></script>
-  <script src="scroll.js?v=3"></script>
+  <script src="cards.js?v=23"></script>
+  <script src="scroll.js?v=10"></script>
   <script src="glitch.js?v=9"></script>
 </body>
 </html>

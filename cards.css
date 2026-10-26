@@ -1945,3 +1945,507 @@
   height: 395.092px;
   object-fit: cover;
 }
+
+/* ---------- Finance widgets: Money and To Do (Figma "Test", 35:674) ---------- */
+
+.fin-label {
+  font: 400 14.355px/normal "Geist", sans-serif;
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+}
+
+.fin-amount {
+  font: 400 28.71px/normal "Geist", sans-serif;
+  color: #fff;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.fin-dim {
+  opacity: 0.5;
+}
+
+/* The card glass (Figma GLASS, light angle 0, intensity .8). The lens itself is an SVG
+   filter on the __under layer (cards.js); this layer adds what light does on the glass:
+   the dark hairline, the faint radial sheen, specular light catching the rim — brightest
+   at the top corners, softer at the bottom ones — and the thin light line at the bottom. */
+.money__glass,
+.todo__glass {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(100% 100% at 50% 0%, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.02) 71%, rgba(255, 255, 255, 0.01));
+  /* the dark hairline sits outside, like Figma's OUTSIDE stroke */
+  box-shadow: 0 0 0 var(--hairline, 0.798px) rgba(16, 16, 16, 0.8), inset 0 -1.595px 1.595px rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.money__glass::after,
+.todo__glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  /* Specular light on the rim: hot at the two top corners, a faint line between them,
+     almost nothing down the sides, a little again at the bottom corners */
+  background:
+    radial-gradient(46px 56px at 0 0, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.25) 45%, transparent 75%),
+    radial-gradient(46px 56px at 100% 0, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.25) 45%, transparent 75%),
+    radial-gradient(40px 40px at 0 100%, rgba(255, 255, 255, 0.22), transparent 75%),
+    radial-gradient(40px 40px at 100% 100%, rgba(255, 255, 255, 0.22), transparent 75%),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.12), transparent 12%);
+  background-origin: border-box;
+  background-repeat: no-repeat;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+/* Light the glass gathers inside the rim: a soft top sheen and the coloured glow
+   of what lies under the bottom edge (green under Money, gold under To Do) */
+.money__glass::before,
+.todo__glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  /* gradients, not inset shadows: a blurred inset shadow leaks up the sides too */
+  background:
+    linear-gradient(to top, var(--edge-glow), transparent 9px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent 3px);
+}
+
+.money__glass { --edge-glow: transparent; }
+
+/* Money's bottom band: green light gathered along the bottom rim. An inset shadow cast
+   from below follows the card's smoothed corners, so the band's top edge rises along
+   them — the edge distortion of Figma's glass. It sits on the glass, not under the
+   lens: bent by the lens, a coloured edge splits into a teal stripe. (The exported
+   base shelf drew a flat, straight edge here instead.) */
+.money__glass::before {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent 3px);
+  /* soft band, then the rim catching light along the bottom — as a blurred inset
+     shadow it follows the smoothed corners and fades up them (the rim ring above is
+     a rectangle cut-out, which thickens at the corners and steps where they end) */
+  box-shadow:
+    inset 0 -17px 16px -7px rgba(88, 130, 66, 0.45),
+    inset 0 -6px 8px -4px rgba(150, 195, 120, 0.28),
+    inset 0 -1px 1.2px rgba(225, 240, 220, 0.45);
+}
+
+.todo__glass { --edge-glow: rgba(230, 203, 127, 0.5); }
+
+/* Everything the glass refracts. Opaque, so the lens has real pixels to bend. */
+.money__under,
+.todo__under {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg, #070707);
+}
+
+.money {
+  width: 300px;
+  height: 319px;
+  border-radius: 31.9px;
+  overflow: hidden;
+}
+
+.money > *,
+.money__under > *,
+.todo > *,
+.todo__card > *,
+.todo__under > * {
+  position: absolute;
+}
+
+/* Under Figma's glass the base shelf keeps its shape but loses the hard edge */
+/* Its flat shelf would draw a straight edge across the band, so Money uses only the
+   glass's bottom band (.money__glass::before) */
+.money .money__base {
+  display: none;
+  left: 5.58px;
+  top: 253.61px;
+  width: 289.491px;
+  height: 51.187px;
+}
+
+.money__glow {
+  inset: 0;
+  background: url("data:image/svg+xml;utf8,<svg viewBox='0 0 300.66 319' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect width='100%' height='100%' fill='url(%23g)'/><defs><radialGradient id='g' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(-29.268 31.9 -30.066 -27.585 300.66 0)'><stop stop-color='rgba(14,14,14,0)' offset='0'/><stop stop-color='rgba(0,0,0,0.2)' offset='0.65'/><stop stop-color='rgba(19,64,26,0.275)' offset='0.7375'/><stop stop-color='rgba(37,128,52,0.35)' offset='0.825'/><stop stop-color='rgba(56,191,78,0.425)' offset='0.9125'/><stop stop-color='rgba(74,255,104,0.5)' offset='1'/></radialGradient></defs></svg>") 0 0 / 100% 100%;
+  filter: blur(31.9px);
+  opacity: 0.2;
+}
+
+.money__chart {
+  left: -6.38px;
+  top: 160.7px;
+  width: 310.228px;
+  height: 187.811px;
+}
+
+.money__chart img,
+.money__area {
+  position: absolute;
+  inset: -0.85% -0.51%;
+  width: auto;
+  height: auto;
+}
+
+/* The chart line is glass in Figma: a saturated green that glows onto the card */
+.money__chart img {
+  filter: saturate(1.35) drop-shadow(0 0 5px rgba(85, 255, 142, 0.45));
+}
+
+/* The area under the line (its Figma fill; the SVG export dropped it) */
+.money__area {
+  clip-path: path("M1.595 97.4562H20.8406C29.9115 97.4562 34.4469 97.4562 38.6192 96.2852C39.9989 95.898 41.3397 95.4179 42.629 94.8495C46.5281 93.1305 49.6897 90.3746 56.0128 84.8628L74.8111 68.4764C81.1341 62.9647 84.2958 60.2087 88.1948 58.4897C89.4841 57.9213 90.825 57.4412 92.2046 57.054C96.3769 55.883 100.912 55.883 109.983 55.883H111.742C120.788 55.883 125.311 55.883 129.473 54.718C130.85 54.3327 132.188 53.855 133.475 53.2894C137.366 51.5789 140.526 48.836 146.844 43.3506L155.218 36.0811C161.537 30.5954 164.696 27.8525 168.587 26.142C169.874 25.5764 171.212 25.0987 172.589 24.7134C176.751 23.5484 181.274 23.5484 190.32 23.5484H211.634C216.049 23.5484 218.257 23.5484 220.411 23.8425C221.883 24.0436 223.334 24.3468 224.748 24.7491C226.816 25.3375 228.771 26.2076 232.68 27.9476C245.88 33.8238 252.481 36.7619 259.08 36.8093C263.535 36.8412 267.931 35.9471 271.884 34.2052C286.023 27.974 298.514 10.7532 311.823 1.595V189.406H1.595Z");
+  background: linear-gradient(to bottom, rgba(106, 237, 147, 0.18), rgba(60, 135, 84, 0) 45%);
+  opacity: 0.6;
+}
+
+.money__title {
+  left: 0;
+  top: 25.52px;
+  padding: 0 19.14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6.38px;
+}
+
+.money__figures {
+  display: flex;
+  flex-direction: column;
+  gap: 0.798px;
+}
+
+.money__delta {
+  display: flex;
+  align-items: center;
+  font: 400 14.355px/normal "Geist", sans-serif;
+  color: #00e029;
+  opacity: 0.8;
+}
+
+.money__delta img {
+  width: 15.95px;
+  height: 15.95px;
+}
+
+.money__info {
+  left: 259.19px;
+  top: 22.33px;
+  width: 19.14px;
+  height: 19.14px;
+  opacity: 0.5;
+}
+
+.money__timeline {
+  left: calc(50% + 0.33px);
+  top: 274.34px;
+  width: 262.378px;
+  transform: translateX(-50%);
+  display: flex;
+}
+
+.money__timeline span {
+  flex: 1;
+  text-align: center;
+  font: 600 9.57px/12.76px -apple-system, "SF Pro Text", "Geist", sans-serif;
+  color: #fff;
+}
+
+/* ---------- Chart indicator ----------
+   One point on the line, at (--px, --py) in card px, moved by cards.js as you hover,
+   drag or use the arrow keys. At rest it is a plain ring; while you interact it turns
+   into the glass bead with its guide lines (dashed above, solid below). */
+.money__pointer {
+  --px: 172.26px;
+  --py: 183.42px;
+  inset: 0;
+  pointer-events: none;
+}
+
+.money__pointer > * {
+  position: absolute;
+}
+
+.money__guide {
+  left: calc(var(--px) - 0.8px);
+  width: 1.6px;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.money__guide--top {
+  top: 116.43px;
+  height: max(0px, calc(var(--py) - 16px - 2px - 116.43px));
+  background: radial-gradient(circle, rgba(91, 247, 142, 0.5) 0.75px, transparent 0.85px) 0 100% / 1.6px 5.76px repeat-y;
+  -webkit-mask: linear-gradient(to top, #000, transparent);
+  mask: linear-gradient(to top, #000, transparent);
+}
+
+.money__guide--bottom {
+  top: calc(var(--py) + 16px);
+  height: max(0px, calc(277.5px - var(--py) - 16px));
+  background: linear-gradient(to bottom, rgba(90, 251, 143, 0.5), rgba(90, 251, 143, 0.5) 40%, rgba(255, 255, 255, 0));
+}
+
+/* Resting state: a light ring sitting on the line, with the line's glow under it */
+.money__ring {
+  left: calc(var(--px) - 8.5px);
+  top: calc(var(--py) - 8.5px);
+  width: 17px;
+  height: 17px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 3.4px solid #d9d9d9;
+  background: #000;
+  box-shadow: 0 0 12px 5px rgba(74, 255, 104, 0.16);
+  transition: opacity 0.25s ease-out, transform 0.45s cubic-bezier(0.34, 1.7, 0.5, 1);
+}
+
+/* The glass bead (Figma GLASS, refraction .68): a little lens over the chart. Inside it
+   copies of the chart are magnified about its centre and squeezed at the rim, so the
+   line swells and bends like through a drop of water; the surface adds the light. */
+.money__bead {
+  left: calc(var(--px) - 15.95px);
+  top: calc(var(--py) - 15.95px);
+  width: 31.9px;
+  height: 31.9px;
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.25s ease-out, transform 0.5s cubic-bezier(0.34, 1.7, 0.5, 1);
+}
+
+.money[data-active] .money__guide,
+.money[data-active] .money__bead {
+  opacity: 1;
+}
+
+.money[data-active] .money__bead {
+  transform: none;
+}
+
+.money[data-active] .money__ring {
+  opacity: 0;
+  transform: scale(1.6);
+}
+
+.money__bead > * {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+/* Opaque, so it hides the line beneath; the copies inside show it refracted */
+.money__bead-lens,
+.money__bead-rim {
+  overflow: hidden;
+}
+
+.money__bead-lens {
+  background: var(--bg, #060606);
+}
+
+/* Chart copies placed exactly over the chart below (card → bead coordinates,
+   following --px / --py).
+   The middle sees it magnified; the rim sees it squeezed and shifted, which is
+   what makes a glass bead read as glass: the line breaks and bends at the edge. */
+.money__bead img {
+  position: absolute;
+  left: calc(7.99px - var(--px));
+  top: calc(175.05px - var(--py));
+  width: 313.418px;
+  height: 191.001px;
+  transform-origin: calc(var(--px) + 7.96px) calc(var(--py) - 159.1px);
+}
+
+.money__bead-lens img {
+  transform: scale(1.5);
+  filter: saturate(1.35) drop-shadow(0 0 4px rgba(85, 255, 142, 0.5));
+}
+
+.money__bead-rim {
+  -webkit-mask: radial-gradient(circle closest-side, transparent 55%, #000 92%);
+  mask: radial-gradient(circle closest-side, transparent 55%, #000 92%);
+  background: var(--bg, #060606);
+}
+
+.money__bead-rim img {
+  transform: translateY(-1.2px) scale(0.82);
+  filter: saturate(1.3) drop-shadow(0.7px 0 0 rgba(255, 60, 120, 0.55)) drop-shadow(-0.7px 0 0 rgba(60, 140, 255, 0.55));
+}
+
+/* The glass surface: dark hairline, thick-glass edge, a darker lower half,
+   a bright specular crescent top-left and the caustic glow inside the bottom rim */
+.money__bead-glass {
+  background:
+    radial-gradient(42% 20% at 40% 14%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0) 100%),
+    radial-gradient(70% 40% at 50% 92%, rgba(130, 255, 170, 0.28), rgba(130, 255, 170, 0) 100%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0) 45%, rgba(2, 18, 8, 0.45));
+  box-shadow:
+    0 0 0 0.24px rgba(0, 0, 0, 0.6),
+    0 2px 5px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 0.6px rgba(225, 240, 230, 0.4),
+    inset 0.8px 1px 1px rgba(255, 255, 255, 0.7),
+    inset -0.6px -1px 1.2px rgba(150, 255, 185, 0.45),
+    inset 0 0 5px 1.5px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Money intro: numbers count up, the line draws itself, the bead lands ---------- */
+
+/* Leading glow riding the tip of the line while it draws (placed by cards.js) */
+.money__head {
+  position: absolute;
+  left: -6.38px; /* the chart box's origin; cards.js moves it along the line */
+  top: 160.7px;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(230, 255, 235, 0.95) 0 9%, rgba(110, 255, 150, 0.55) 22%, rgba(85, 255, 142, 0) 70%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.money__chart {
+  --draw: 1;
+  clip-path: inset(-20px calc((1 - var(--draw)) * 100%) -20px -20px);
+}
+
+/* Until the line has drawn itself the indicator is hidden; then the ring pops in */
+.money__pointer {
+  transition: opacity 0.4s ease-out, transform 0.6s cubic-bezier(0.34, 1.7, 0.5, 1);
+}
+
+.money[data-intro="wait"] .money__pointer {
+  opacity: 0;
+  transform: scale(0.6);
+  transform-origin: var(--px) var(--py);
+  transition: none;
+}
+
+/* The chart is a control: horizontal drags move the indicator, vertical ones scroll */
+.money {
+  touch-action: pan-y;
+  cursor: default;
+}
+
+.money[data-active] {
+  cursor: ew-resize;
+}
+
+.money:focus-visible {
+  outline: 1px solid rgba(91, 247, 142, 0.6);
+  outline-offset: 3px;
+}
+
+/* To Do: the card with two receding plates behind it (a stack of tasks) */
+.todo {
+  width: 306px;
+  height: 308px;
+}
+
+.todo__plate {
+  border-radius: 21.802px;
+}
+
+.todo__plate--back {
+  left: 32.7px;
+  top: 259.28px;
+  width: 240.595px;
+  height: 33.481px;
+  opacity: 0.7;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.2), rgba(153, 153, 153, 0) 96.5%);
+}
+
+.todo__plate--mid {
+  left: 18.69px;
+  top: 225.8px;
+  width: 268.626px;
+  height: 60.733px;
+  border-radius: 26px;
+  opacity: 0.8;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.3), transparent);
+}
+
+.todo__card {
+  left: 6.23px;
+  top: 15.57px;
+  width: 293.542px;
+  height: 264.733px;
+  border-radius: 31.145px;
+  overflow: hidden;
+}
+
+.todo__base {
+  left: 50%;
+  bottom: 13.85px;
+  width: 293.541px;
+  height: 49.976px;
+  transform: translateX(-50%);
+}
+
+.todo__glow {
+  inset: 0;
+  background: url("data:image/svg+xml;utf8,<svg viewBox='0 0 293.54 264.73' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect width='100%' height='100%' fill='url(%23g)'/><defs><radialGradient id='g' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(0 33.687 -37.353 0 147.16 0)'><stop stop-color='rgba(11,1,2,1)' offset='0'/><stop stop-color='rgba(0,0,0,1)' offset='0.65'/><stop stop-color='rgba(7,6,4,0.98438)' offset='0.66094'/><stop stop-color='rgba(14,13,8,0.96875)' offset='0.67187'/><stop stop-color='rgba(29,25,16,0.9375)' offset='0.69375'/><stop stop-color='rgba(58,51,32,0.875)' offset='0.7375'/><stop stop-color='rgba(86,76,48,0.8125)' offset='0.78125'/><stop stop-color='rgba(115,102,64,0.75)' offset='0.825'/><stop stop-color='rgba(173,152,95,0.625)' offset='0.9125'/><stop stop-color='rgba(230,203,127,0.5)' offset='1'/></radialGradient></defs></svg>") 0 0 / 100% 100%;
+  filter: blur(31.145px);
+}
+
+.todo__glass {
+  --hairline: 0.779px;
+}
+
+.todo__name {
+  left: 18.69px;
+  top: 24.92px;
+}
+
+.todo__title {
+  left: 0;
+  top: 65.4px;
+  padding: 0 18.687px;
+  display: flex;
+  flex-direction: column;
+  gap: 3.115px;
+}
+
+.todo__action {
+  left: 18.69px;
+  top: 223.47px;
+  width: 256.168px;
+  display: flex;
+  align-items: center;
+  gap: 6.229px;
+  font: 400 14.015px/normal "Geist", sans-serif;
+  color: #ea8313;
+}
+
+.todo__action img {
+  width: 18.687px;
+  height: 18.687px;
+}
+
+/* Figma corner smoothing 80% */
+@supports (corner-shape: superellipse(2)) {
+  .money,
+  .money__glass,
+  .money__glass::before,
+  .money__glass::after,
+  .money__under {
+    border-radius: 57.42px;
+    corner-shape: superellipse(1.96);
+  }
+
+  .todo__card,
+  .todo__glass,
+  .todo__glass::before,
+  .todo__glass::after,
+  .todo__under {
+    border-radius: 56.06px;
+    corner-shape: superellipse(1.96);
+  }
+}

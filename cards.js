@@ -76,18 +76,22 @@
   // filter on the button's under-layer, which every modern browser supports.
   var LENS = { refraction: 0.32, depth: 24, dispersion: 0.32, frost: 4 };
 
-  function lensMap(w, h, radius, bevel, maxShift) {
+  // res > 1 renders the map finer than CSS pixels (small lenses look blocky otherwise)
+  function lensMap(w, h, radius, bevel, maxShift, res) {
+    res = res || 1;
+    var W = Math.round(w * res), Hh = Math.round(h * res);
     var c = document.createElement('canvas');
-    c.width = w;
-    c.height = h;
+    c.width = W;
+    c.height = Hh;
     var g = c.getContext('2d');
-    var img = g.createImageData(w, h);
+    var img = g.createImageData(W, Hh);
     var cx = w / 2, cy = h / 2;
-    for (var y = 0; y < h; y++) {
-      for (var x = 0; x < w; x++) {
+    for (var py = 0; py < Hh; py++) {
+      for (var px = 0; px < W; px++) {
+        var x = px / res, y = py / res;
         // Signed distance to the rounded rect and its outward normal
-        var dx = Math.abs(x + 0.5 - cx) - (w / 2 - radius);
-        var dy = Math.abs(y + 0.5 - cy) - (h / 2 - radius);
+        var dx = Math.abs(x + 0.5 / res - cx) - (w / 2 - radius);
+        var dy = Math.abs(y + 0.5 / res - cy) - (h / 2 - radius);
         var ox = Math.max(dx, 0), oy = Math.max(dy, 0);
         var outside = Math.sqrt(ox * ox + oy * oy);
         var inside = -(outside + Math.min(Math.max(dx, dy), 0) - radius);
@@ -95,13 +99,13 @@
         if (dx > 0 && dy > 0) { nx = ox / (outside || 1); ny = oy / (outside || 1); }
         else if (dx > dy) nx = 1;
         else ny = 1;
-        nx *= Math.sign(x + 0.5 - cx);
-        ny *= Math.sign(y + 0.5 - cy);
+        nx *= Math.sign(x + 0.5 / res - cx);
+        ny *= Math.sign(y + 0.5 / res - cy);
         var t = inside >= bevel || inside < 0 ? 0 : 1 - inside / bevel;
         // Strongest near the rim, but never shifted further than the rim itself,
         // so the glass never samples outside the button
         var mag = Math.min(t, inside / maxShift);
-        var i = (y * w + x) * 4;
+        var i = (py * W + px) * 4;
         img.data[i] = 128 + nx * mag * 127;
         img.data[i + 1] = 128 + ny * mag * 127;
         img.data[i + 2] = 128;
@@ -162,6 +166,225 @@
         glass.style.setProperty('--my', ((e.clientY - r.top) / r.height) * 100 + '%');
       });
     });
+  })();
+
+  // ---------- Glass cards (Figma GLASS effect on a whole card) ----------
+  // Same lens as the buttons, sized to the card: what lies under the glass (the chart,
+  // the glows, the base) bends near the rim. No frost — Figma's card glass is sharp.
+  // Settings come from the Figma layer: data-glass="refraction depth dispersion".
+  (function glassCards() {
+    var layers = document.querySelectorAll('[data-glass]');
+    if (!layers.length) return;
+    var defs = document.createElementNS(SVG_NS, 'svg');
+    defs.setAttribute('width', '0');
+    defs.setAttribute('height', '0');
+    defs.setAttribute('aria-hidden', 'true');
+    defs.style.position = 'absolute';
+    document.body.appendChild(defs);
+
+    layers.forEach(function (layer, n) {
+      var p = layer.dataset.glass.split(' ').map(parseFloat);
+      var w = Math.round(layer.offsetWidth), h = Math.round(layer.offsetHeight);
+      if (!w || !h) return; // hidden card
+      var r = parseFloat(layer.dataset.glassRadius);
+      // Gentler than the buttons: a card's rim is long, and a wide shift smears
+      // the edge column into a flat band instead of bending what is under it
+      var scale = p[0] * (parseFloat(layer.dataset.glassScale) || 30);
+      // A thinner fringe than the buttons: along a long straight rim a strong one
+      // reads as a coloured stripe, not as dispersion
+      var spread = p[2] * 0.05;
+      var id = 'glass-card-' + n;
+      var channel = function (k, matrix, name) {
+        return '<feDisplacementMap in="soft" in2="map" scale="' + (scale * k).toFixed(2) +
+          '" xChannelSelector="R" yChannelSelector="G" result="d' + name + '"/>' +
+          '<feColorMatrix in="d' + name + '" type="matrix" values="' + matrix + '" result="' + name + '"/>';
+      };
+      defs.insertAdjacentHTML('beforeend',
+        '<filter id="' + id + '" x="0" y="0" width="' + w + '" height="' + h + '" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">' +
+          '<feImage href="' + lensMap(w, h, r, p[1] * 0.75, scale * (1 + spread) / 2, w < 80 ? 4 : 2) + '" x="0" y="0" width="' + w + '" height="' + h + '" preserveAspectRatio="none" result="map"/>' +
+          // a hint of frost: displaced pixels otherwise come out stepped along the rim
+          '<feGaussianBlur in="SourceGraphic" stdDeviation="0.4" result="soft"/>' +
+          channel(1 + spread, '1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0', 'r') +
+          channel(1, '0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0', 'g') +
+          channel(1 - spread, '0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0', 'b') +
+          '<feBlend in="r" in2="g" mode="screen" result="rg"/>' +
+          '<feBlend in="rg" in2="b" mode="screen"/>' +
+        '</filter>');
+      layer.style.filter = 'url(#' + id + ')';
+    });
+  })();
+
+  // ---------- Money chart: intro (count up, draw the line, show the indicator) ----------
+  // ---------- and the indicator you can move along the line ----------
+  (function moneyChart() {
+    var card = document.getElementById('money');
+    if (!card) return;
+
+    var chart = card.querySelector('.money__chart');
+    var head = card.querySelector('.money__head');
+    var intEl = card.querySelector('.money__int');
+    var centsEl = card.querySelector('.money__cents');
+    var pctEl = card.querySelector('.money__pct');
+    var TOTAL = 267188819; // cents
+    var PCT = 343;         // hundredths of a percent
+    var DRAW = 1700, BEAD_AT = 1450;
+    var CHART_W = 310.228;
+
+    // The line's path (same as money-chart.svg), sampled once into x → y for the glowing tip
+    var d = 'M1.595 97.4562H20.8406C29.9115 97.4562 34.4469 97.4562 38.6192 96.2852C39.9989 95.898 41.3397 95.4179 42.629 94.8495C46.5281 93.1305 49.6897 90.3746 56.0128 84.8628L74.8111 68.4764C81.1341 62.9647 84.2958 60.2087 88.1948 58.4897C89.4841 57.9213 90.825 57.4412 92.2046 57.054C96.3769 55.883 100.912 55.883 109.983 55.883H111.742C120.788 55.883 125.311 55.883 129.473 54.718C130.85 54.3327 132.188 53.855 133.475 53.2894C137.366 51.5789 140.526 48.836 146.844 43.3506L155.218 36.0811C161.537 30.5954 164.696 27.8525 168.587 26.142C169.874 25.5764 171.212 25.0987 172.589 24.7134C176.751 23.5484 181.274 23.5484 190.32 23.5484H211.634C216.049 23.5484 218.257 23.5484 220.411 23.8425C221.883 24.0436 223.334 24.3468 224.748 24.7491C226.816 25.3375 228.771 26.2076 232.68 27.9476C245.88 33.8238 252.481 36.7619 259.08 36.8093C263.535 36.8412 267.931 35.9471 271.884 34.2052C286.023 27.974 298.514 10.7532 311.823 1.595';
+    var path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', d);
+    var pts = [];
+    var len = path.getTotalLength();
+    for (var l = 0; l <= len; l += len / 400) {
+      var pt = path.getPointAtLength(l);
+      pts.push([pt.x - 1.582, pt.y - 1.596]); // svg → chart box (the img is inset by -0.85% / -0.51%)
+    }
+    function yAt(x) {
+      for (var i = 1; i < pts.length; i++) {
+        if (pts[i][0] >= x) {
+          var a = pts[i - 1], b = pts[i], k = (x - a[0]) / ((b[0] - a[0]) || 1);
+          return a[1] + (b[1] - a[1]) * k;
+        }
+      }
+      return pts[pts.length - 1][1];
+    }
+
+    function money(c) {
+      var int = Math.floor(c / 100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      var cents = ('0' + (c % 100)).slice(-2);
+      intEl.textContent = int;
+      centsEl.textContent = ',' + cents;
+    }
+    function pct(v) { pctEl.textContent = Math.floor(v / 100) + ',' + ('0' + (v % 100)).slice(-2); }
+
+    var easeOut = function (t) { return 1 - Math.pow(1 - t, 3); };
+    var easeInOut = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+
+    var raf = 0, beadTimer = 0, state = 'done';
+
+    function reset() {
+      cancelAnimationFrame(raf);
+      clearTimeout(beadTimer);
+      card.setAttribute('data-intro', 'wait');
+      chart.style.setProperty('--draw', 0);
+      head.style.opacity = 0;
+      money(0);
+      pct(0);
+      state = 'wait';
+    }
+
+    function play() {
+      state = 'playing';
+      var start = performance.now();
+      beadTimer = setTimeout(function () { card.removeAttribute('data-intro'); }, BEAD_AT);
+      (function frame(now) {
+        var t = Math.min(1, (now - start) / DRAW);
+        var draw = easeInOut(t);
+        chart.style.setProperty('--draw', draw);
+        var x = draw * CHART_W;
+        head.style.transform = 'translate(' + x + 'px,' + yAt(x) + 'px)';
+        head.style.opacity = t < 0.08 ? t / 0.08 : t > 0.85 ? (1 - t) / 0.15 : 1;
+        var e = easeOut(t);
+        money(Math.round(TOTAL * e));
+        pct(Math.round(PCT * e));
+        if (t < 1) raf = requestAnimationFrame(frame);
+        else state = 'done';
+      })(start);
+    }
+
+    // Indicator: a point on the line at card x, kept between the chart's edges.
+    // Hover, drag (touch: horizontal drags; vertical ones still scroll) or arrow keys
+    // move it; while that happens it shows as the glass bead (CSS: [data-active]).
+    var pointer = card.querySelector('.money__pointer');
+    var CHART_X = -6.38, CHART_Y = 160.7, CARD_W = 300;
+    var MIN_X = 22, MAX_X = 284;
+    var cur = 172.26, goal = cur, following = false, dragging = false, idle = 0;
+
+    // Reading the line: its height at the far right is today's balance, at the far left
+    // the start of the period (+3,43% ago), so the figures follow the point you hold
+    var Y_FROM = yAt(MIN_X - CHART_X), Y_TO = yAt(MAX_X - CHART_X);
+    var FROM = TOTAL / (1 + PCT / 10000);
+
+    function place(x) {
+      var y = yAt(x - CHART_X);
+      pointer.style.setProperty('--px', x + 'px');
+      pointer.style.setProperty('--py', (y + CHART_Y) + 'px');
+      if (!card.hasAttribute('data-active') || state !== 'done') return;
+      var v = FROM + (TOTAL - FROM) * (Y_FROM - y) / (Y_FROM - Y_TO);
+      money(Math.round(v));
+      pct(Math.max(0, Math.round((v / FROM - 1) * 10000)));
+    }
+    function follow() {
+      cur += (goal - cur) * 0.25;
+      if (Math.abs(goal - cur) < 0.05) cur = goal;
+      place(cur);
+      if (cur !== goal) requestAnimationFrame(follow);
+      else following = false;
+    }
+    function aim(x) {
+      goal = Math.max(MIN_X, Math.min(MAX_X, x));
+      if (!following) { following = true; requestAnimationFrame(follow); }
+    }
+    // Pointer x in card px (the card may be zoomed to fit a phone)
+    function local(e) {
+      var r = card.getBoundingClientRect();
+      return (e.clientX - r.left) * CARD_W / r.width;
+    }
+    function activate() {
+      clearTimeout(idle);
+      card.setAttribute('data-active', '');
+      place(cur);
+    }
+    // Back at rest the card shows today's figures again
+    function deactivate(delay) {
+      clearTimeout(idle);
+      idle = setTimeout(function () {
+        card.removeAttribute('data-active');
+        if (state === 'done') { money(TOTAL); pct(PCT); }
+      }, delay || 0);
+    }
+
+    card.addEventListener('pointerenter', function (e) {
+      if (e.pointerType === 'mouse') { activate(); aim(local(e)); }
+    });
+    card.addEventListener('pointermove', function (e) {
+      if (e.pointerType === 'mouse' || dragging) aim(local(e));
+    });
+    card.addEventListener('pointerleave', function (e) {
+      if (e.pointerType === 'mouse' && !dragging) deactivate();
+    });
+    card.addEventListener('pointerdown', function (e) {
+      dragging = true;
+      activate();
+      aim(local(e));
+    });
+    ['pointerup', 'pointercancel'].forEach(function (type) {
+      card.addEventListener(type, function (e) {
+        dragging = false;
+        if (e.pointerType !== 'mouse') deactivate(900);
+      });
+    });
+    card.addEventListener('keydown', function (e) {
+      var step = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+      if (!step) return;
+      e.preventDefault();
+      activate();
+      aim(goal + step * (e.shiftKey ? 40 : 12));
+      deactivate(1500);
+    });
+    card.addEventListener('blur', function () { deactivate(); });
+    place(cur);
+
+    // The intro plays each time the card comes into view (the last frame of the scroll scene)
+    if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    reset();
+    new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.intersectionRatio >= 0.6 && state === 'wait') play();
+        else if (en.intersectionRatio === 0 && state !== 'wait') reset();
+      });
+    }, { threshold: [0, 0.6] }).observe(card);
   })();
 
   // ---------- Rolling counter: 00,000 → target ----------

@@ -1,11 +1,11 @@
-// Scroll-driven scene: the 8 Figma frames (Desktop 1–8) are keyframes.
+// Scroll-driven scene: the 9 Figma frames (Desktop 1–9) are keyframes.
 // Every item has a position per frame; scrolling interpolates between them.
 // Rendered 1:1 (no scaling): x follows Figma's "N% + px" constraints, y is px from the top.
 (function () {
   'use strict';
 
   var DESIGN_H = 1024;
-  var FRAMES = 8;
+  var FRAMES = 9;
   var DESKTOP = window.matchMedia('(min-width: 1024px)');
   var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -28,22 +28,30 @@
   // Card keyframes per frame. y is the top edge in design px;
   // 'peek' = anchored to the viewport bottom in frame 1, values ≥ DESIGN_H are below the fold.
   var CARDS = {
-    steps:    { x: [X(0.375, -98), X(0.375, -122.63)].concat(repeat(X(0.25, -109), 6)),
-                y: ['peek', 356, 114, 114, -200, -200, -200, -200],
-                s: [0.6484, 1, 1, 1, 1, 1, 1, 1] },
-    phone:    { x: repeat(X(0.375, -118), 4).concat(repeat(X(0.2917, -54), 4)),
-                y: [1500, 583, 197, 197, -117, -476, -980, -980] },
-    ai:       { x: repeat(X(0.4167, 122), 8), y: [1600, 1300, 624, 624, 310, -49, -553, -553] },
-    trade:    { x: repeat(X(0.4583, -145), 4).concat(repeat(X(0.375, -72), 4)),
-                y: [1600, 1500, 1300, 907, 593, 234, -270, -270] },
-    bars:     { x: repeat(X(0.5, -200), 8), y: [1700, 1600, 1400, 1150, 878, 519, 15, -421] },
-    margin:   { x: repeat(X(0.25, 157), 8), y: [1800, 1700, 1500, 1300, 1100, 796, 292, -144] },
-    withdraw: { x: repeat(X(0.5, -79), 8), y: [1900, 1800, 1600, 1400, 1250, 1100, 850, 414] },
+    steps:    { x: [X(0.375, -98), X(0.375, -122.63)].concat(repeat(X(0.25, -109), 7)),
+                y: ['peek', 356, 114, 114, -200, -200, -200, -200, -200],
+                s: [0.6484, 1, 1, 1, 1, 1, 1, 1, 1] },
+    phone:    { x: repeat(X(0.375, -118), 4).concat(repeat(X(0.2917, -54), 5)),
+                y: [1500, 583, 197, 197, -117, -476, -980, -980, -980] },
+    ai:       { x: repeat(X(0.4167, 122), 9), y: [1600, 1300, 624, 624, 310, -49, -553, -553, -553] },
+    trade:    { x: repeat(X(0.4583, -145), 4).concat(repeat(X(0.375, -72), 5)),
+                y: [1600, 1500, 1300, 907, 593, 234, -270, -270, -270] },
+    bars:     { x: repeat(X(0.5, -200), 9), y: [1700, 1600, 1400, 1150, 878, 519, 15, -421, -421] },
+    margin:   { x: repeat(X(0.25, 157), 9), y: [1800, 1700, 1500, 1300, 1100, 796, 292, -144, -496] },
+    withdraw: { x: repeat(X(0.5, -79), 9), y: [1900, 1800, 1600, 1400, 1250, 1100, 850, 414, 62] },
     // Tiny below-the-fold widget in frames 1–6 that grows into the big card
-    streak:   { x: repeat(X(0.375, -46.15), 6).concat(repeat(X(0.375, -143), 2)),
-                y: [1062.5, 1062.5, 1062.5, 1062.5, 1062.5, 1062.5, 639, 203],
-                s: [0.368, 0.368, 0.368, 0.368, 0.368, 0.368, 1, 1] },
-    wolves:   { x: repeat(X(0.7083, -153), 8), y: [1900, 1800, 1700, 1500, 1300, 1150, 914, 478] }
+    streak:   { x: repeat(X(0.375, -46.15), 6).concat(repeat(X(0.375, -143), 3)),
+                y: [1062.5, 1062.5, 1062.5, 1062.5, 1062.5, 1062.5, 639, 203, -149],
+                s: [0.368, 0.368, 0.368, 0.368, 0.368, 0.368, 1, 1, 1] },
+    wolves:   { x: repeat(X(0.7083, -153), 9), y: [1900, 1800, 1700, 1500, 1300, 1150, 914, 478, 126] },
+    // Money peeks up from the bottom edge in frame 8 and rises fully in frame 9, with
+    // To Do beside it. 'bN' = top edge N px above the viewport bottom (793 of 1024 in
+    // Figma is 'b231'), so they keep their place on viewports of any height; '|M' keeps
+    // them 16px clear of the card above (withdraw ends at 576 / 224, streak at 100).
+    // x matches Figma at 1920 and spreads them apart on narrower screens, so To Do,
+    // Money and the wolves stay side by side instead of overlapping.
+    money:    { x: repeat(X(0.55, -248), 9), y: repeat(1900, 6).concat([1229, 'b231|592', 'b583|240']) },
+    todo:     { x: repeat(X(0.45, -460), 9), y: repeat(1900, 6).concat([1500, 1100, 'b441|116']) }
   };
 
   var items = Object.keys(CARDS).map(function (id) {
@@ -71,6 +79,12 @@
   function resolveY(y) {
     // Frame 1 peek: the steps card shows its top 85px above the viewport bottom (939 of 1024)
     if (y === 'peek') return H - (DESIGN_H - 939);
+    // 'bN|M': top edge N px above the viewport bottom, whatever the viewport height,
+    // but never above M (so on short viewports it doesn't slide over the card above)
+    if (typeof y === 'string') {
+      var parts = y.slice(1).split('|');
+      return Math.max(H - parseFloat(parts[0]), parseFloat(parts[1] || -Infinity));
+    }
     // Items still below the fold must stay below it on viewports taller than the design
     return y >= DESIGN_H ? y + Math.max(0, H - DESIGN_H) : y;
   }

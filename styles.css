@@ -220,4 +220,14 @@ a:focus-visible {
   .card {
     align-self: center;
   }
+
+  /* The Glass card paints a page-coloured backdrop 80px past its edges (for its blend
+     layers); in the column that would cover the bottom of the phone above it */
+  .item {
+    z-index: 1;
+  }
+
+  .ai {
+    z-index: 0;
+  }
 }
