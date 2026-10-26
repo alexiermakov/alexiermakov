@@ -32,8 +32,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400&family=Host+Grotesk:wght@400;500&family=Atkinson+Hyperlegible+Mono:wght@500&family=Wix+Madefor+Text:wght@500;600&family=Manrope:wght@500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="preload" href="assets/fonts/lebowski-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=6">
-  <link rel="stylesheet" href="cards.css?v=68">
+  <link rel="stylesheet" href="styles.css?v=8">
+  <script>
+    // Hide the first screen until intro.js plays its entrance (skipped for reduced motion);
+    // if the script never runs, the page shows itself after a few seconds anyway
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('reveal');
+      setTimeout(function () { document.documentElement.classList.remove('reveal', 'reveal-go'); }, 6000);
+    }
+  </script>
+  <link rel="stylesheet" href="cards.css?v=71">
 
   <script type="application/ld+json">
   {
@@ -223,7 +231,7 @@
           </div>
         </div>
 
-        <div class="item card withdraw" id="withdraw" role="img" aria-label="Виджет вывода средств">
+        <div class="item card withdraw" id="withdraw" role="img" aria-label="Виджет вывода средств" data-smooth-radius="33.825">
           <span class="withdraw__glow"><img src="assets/cards/withdraw-glow.svg" alt=""></span>
           <img class="withdraw__icon" src="assets/cards/withdraw-icon.svg" alt="">
           <span class="withdraw__sum">320 000 ₽</span>
@@ -242,7 +250,7 @@
           </button>
         </div>
 
-        <div class="item card wolves" id="wolves" role="img" aria-label="Иллюстрация">
+        <div class="item card wolves" id="wolves" role="img" aria-label="Иллюстрация" data-smooth-radius="39.509">
           <img src="assets/cards/wolves.jpg" alt="" loading="lazy">
         </div>
 
@@ -341,6 +349,7 @@
       a.textContent = e;
     });
   </script>
+  <script src="intro.js?v=1"></script>
   <script src="cards.js?v=29"></script>
   <script src="scroll.js?v=10"></script>
   <script src="glitch.js?v=9"></script>

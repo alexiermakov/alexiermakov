@@ -231,3 +231,55 @@ a:focus-visible {
     z-index: 0;
   }
 }
+
+/* ---------- First screen entrance (intro.js) ----------
+   Words rise out of a blur line by line, the photo settles in, and the first widget
+   floats up from below after the last line. html.reveal = waiting, reveal-go = playing. */
+.rv-w {
+  display: inline-block;
+}
+
+.reveal .rv-w {
+  opacity: 0;
+  transform: translateY(0.45em);
+  filter: blur(6px);
+}
+
+.reveal.reveal-go .rv-w {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+  transition: opacity 0.7s ease-out, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.7s ease-out;
+}
+
+/* Until the words are wrapped, keep the text blocks themselves hidden */
+.reveal:not(.reveal-go) #intro .text,
+.reveal:not(.reveal-go) #contacts {
+  visibility: hidden;
+}
+
+/* The photo rises from below. Only translate: the individual scale property is applied
+   after scroll.js's translate3d, so it scaled the photo's position too and the photo
+   swept in from the side. */
+.reveal .avatar {
+  opacity: 0;
+  translate: 0 28px;
+}
+
+.reveal.reveal-go .avatar {
+  opacity: 1;
+  translate: 0 0;
+  transition: opacity 0.7s ease-out, translate 0.9s cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+
+/* translate, not transform: scroll.js owns the widget's transform */
+.reveal #steps {
+  opacity: 0;
+  translate: 0 160px;
+}
+
+.reveal.reveal-go #steps {
+  opacity: 1;
+  translate: 0 0;
+  transition: opacity 0.6s ease-out, translate 1s cubic-bezier(0.22, 1.2, 0.36, 1);
+}
